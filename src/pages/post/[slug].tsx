@@ -6,14 +6,13 @@ import Prismic from '@prismicio/client';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
-import { useEffect, useMemo, useState } from 'react';
-import { RichText } from 'prismic-dom';
 import Header from '../../components/Header';
 
 import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import PostComments from '../../components/PostComments';
 
 interface Post {
   first_publication_date: string | null;
@@ -86,6 +85,9 @@ export default function Post({ post }: PostProps): JSX.Element {
               ))}
             </div>
           ))}
+        </section>
+        <section>
+          <PostComments />
         </section>
       </main>
     </>
