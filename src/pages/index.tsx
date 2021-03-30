@@ -136,7 +136,7 @@ export default function Home({
   );
 }
 
-export const getStaticProps: GetStaticProps<HomeProps> = async ({
+export const getStaticProps: GetStaticProps = async ({
   preview = false,
   previewData,
 }) => {

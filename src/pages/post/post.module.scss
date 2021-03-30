@@ -60,3 +60,23 @@
     }
   }
 }
+
+.pagination {
+  display: flex;
+  flex: 1;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--grey-300);
+  justify-content: space-between;
+  align-items: center;
+
+  .before {
+    display: flex;
+    flex-direction: column;
+  }
+  .after {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+  }
+}

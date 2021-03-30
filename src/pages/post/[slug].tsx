@@ -37,9 +37,22 @@ interface Post {
 interface PostProps {
   post: Post;
   preview: boolean;
+  before: {
+    uid: string;
+    title: string;
+  };
+  after: {
+    uid: string;
+    title: string;
+  };
 }
 
-export default function Post({ post, preview }: PostProps): JSX.Element {
+export default function Post({
+  post,
+  preview,
+  before,
+  after,
+}: PostProps): JSX.Element {
   // TODO
   const router = useRouter();
   if (router.isFallback) {
@@ -102,6 +115,28 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
             </div>
           ))}
         </section>
+        <section className={styles.pagination}>
+          <div className={styles.before}>
+            {before.uid && (
+              <>
+                <span>{before.title}</span>
+                <Link href={`/post/${before.uid}`}>
+                  <a>Post anterior</a>
+                </Link>
+              </>
+            )}
+          </div>
+          <div className={styles.after}>
+            {after.uid && (
+              <>
+                <span>{after.title}</span>
+                <Link href={`/post/${after.uid}`}>
+                  <a>Próximo post</a>
+                </Link>
+              </>
+            )}
+          </div>
+        </section>
         <section>
           <PostComments />
         </section>
@@ -131,5 +166,22 @@ export const getStaticProps: GetStaticProps = async ({
   const response = await prismic.getByUID('posts', String(slug), {
     ref: previewData?.ref ?? null,
   });
-  return { props: { post: response, preview } };
+  const afterPosts = await prismic.query(
+    Prismic.Predicates.at('document.type', 'posts'),
+    { orderings: '[document.first_publication_date]', after: response.id }
+  );
+  const beforePosts = await prismic.query(
+    Prismic.Predicates.at('document.type', 'posts'),
+    { orderings: '[document.first_publication_date desc]', after: response.id }
+  );
+  const after = {
+    uid: afterPosts.results_size > 0 ? afterPosts.results[0].uid : '',
+    title: afterPosts.results_size > 0 ? afterPosts.results[0].data.title : '',
+  };
+  const before = {
+    uid: beforePosts.results_size > 0 ? beforePosts.results[0].uid : '',
+    title:
+      beforePosts.results_size > 0 ? beforePosts.results[0].data.title : '',
+  };
+  return { props: { post: response, preview, before, after } };
 };
