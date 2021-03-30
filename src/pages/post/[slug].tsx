@@ -2,10 +2,13 @@
 /* eslint-disable no-return-assign */
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
+import Head from 'next/head';
+import Link from 'next/link';
 import Prismic from '@prismicio/client';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import { RichText } from 'prismic-dom';
 import Header from '../../components/Header';
 
 import { getPrismicClient } from '../../services/prismic';
@@ -33,9 +36,10 @@ interface Post {
 
 interface PostProps {
   post: Post;
+  preview: boolean;
 }
 
-export default function Post({ post }: PostProps): JSX.Element {
+export default function Post({ post, preview }: PostProps): JSX.Element {
   // TODO
   const router = useRouter();
   if (router.isFallback) {
@@ -52,7 +56,17 @@ export default function Post({ post }: PostProps): JSX.Element {
 
   return (
     <>
+      <Head>
+        <title> {post.data.title} | spacetraveling </title>
+      </Head>
       <Header />
+      {preview && (
+        <aside>
+          <Link href="/api/exit-preview">
+            <a>Sair do modo Preview</a>
+          </Link>
+        </aside>
+      )}
       <section className={styles.bannerContainer}>
         <img src={post.data.banner.url} alt={post.data.title} />
       </section>
@@ -80,9 +94,11 @@ export default function Post({ post }: PostProps): JSX.Element {
           {post.data.content.map(content => (
             <div className={styles.postSection} key={content.heading}>
               <h1>{content.heading}</h1>
-              {content.body.map(bodyContent => (
-                <p key={bodyContent.text}>{bodyContent.text}</p>
-              ))}
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: RichText.asHtml(content.body),
+                }}
+              />
             </div>
           ))}
         </section>
@@ -105,9 +121,15 @@ export const getStaticPaths: GetStaticPaths = async () => {
   return { paths, fallback: true };
 };
 
-export const getStaticProps: GetStaticProps = async context => {
-  const { slug } = context.params;
+export const getStaticProps: GetStaticProps = async ({
+  params,
+  preview = false,
+  previewData,
+}) => {
+  const { slug } = params;
   const prismic = getPrismicClient();
-  const response = await prismic.getByUID('posts', String(slug), {});
-  return { props: { post: response } };
+  const response = await prismic.getByUID('posts', String(slug), {
+    ref: previewData?.ref ?? null,
+  });
+  return { props: { post: response, preview } };
 };

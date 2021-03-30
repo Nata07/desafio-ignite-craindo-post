@@ -18,7 +18,6 @@ export default function PostComments(): JSX.Element {
       <h1>Comentários</h1>
       <hr />
       <div ref={commentBox} />
-      {/* Above element is where the comments are injected */}
     </div>
   );
 }

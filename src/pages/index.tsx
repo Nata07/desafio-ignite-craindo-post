@@ -29,9 +29,13 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination;
+  preview: boolean;
 }
 
-export default function Home({ postsPagination }: HomeProps): JSX.Element {
+export default function Home({
+  postsPagination,
+  preview,
+}: HomeProps): JSX.Element {
   // TODO
   const [posts, setPosts] = useState<Post[]>([]);
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
@@ -91,7 +95,13 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
       <Head>
         <title>Home | spacetraveling</title>
       </Head>
-
+      {preview && (
+        <aside>
+          <Link href="/api/exit-preview">
+            <a>Sair do modo Preview</a>
+          </Link>
+        </aside>
+      )}
       <main className={`${styles.container} ${commonStyles.container}`}>
         <section className={styles.logoContainer}>
           <img src="/images/logo.svg" alt="logo" />
@@ -126,11 +136,14 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
   );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps<HomeProps> = async ({
+  preview = false,
+  previewData,
+}) => {
   const prismic = getPrismicClient();
   const postsResponse = await prismic.query(
     [Prismic.Predicates.at('document.type', 'posts')],
-    { pageSize: 2 }
+    { pageSize: 2, ref: previewData?.ref ?? null }
   );
-  return { props: { postsPagination: postsResponse } };
+  return { props: { postsPagination: postsResponse, preview } };
 };
