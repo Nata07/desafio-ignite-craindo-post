@@ -9,6 +9,7 @@ import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { RichText } from 'prismic-dom';
+import { useMemo } from 'react';
 import Header from '../../components/Header';
 
 import { getPrismicClient } from '../../services/prismic';
@@ -19,6 +20,7 @@ import PostComments from '../../components/PostComments';
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string | null;
   data: {
     title: string;
     banner: {
@@ -54,6 +56,15 @@ export default function Post({
   after,
 }: PostProps): JSX.Element {
   // TODO
+  const updatedDateTime = useMemo(() => {
+    return format(
+      new Date(post.last_publication_date),
+      "'* editado em 'dd MMM yyyy', às ' HH:mm ",
+      {
+        locale: ptBR,
+      }
+    );
+  }, [post.last_publication_date]);
   const router = useRouter();
   if (router.isFallback) {
     return <p>Carregando...</p>;
@@ -102,6 +113,9 @@ export default function Post({
             <FiClock />
             <span>{readingTime} min</span>
           </div>
+        </section>
+        <section className={styles.updatedMetaData}>
+          <span>{updatedDateTime}</span>
         </section>
         <section className={styles.content}>
           {post.data.content.map(content => (
@@ -166,6 +180,7 @@ export const getStaticProps: GetStaticProps = async ({
   const response = await prismic.getByUID('posts', String(slug), {
     ref: previewData?.ref ?? null,
   });
+
   const afterPosts = await prismic.query(
     Prismic.Predicates.at('document.type', 'posts'),
     { orderings: '[document.first_publication_date]', after: response.id }
