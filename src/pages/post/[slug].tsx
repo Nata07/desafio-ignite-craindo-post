@@ -58,7 +58,7 @@ export default function Post({
   // TODO
   const updatedDateTime = useMemo(() => {
     return format(
-      new Date(post.last_publication_date),
+      new Date(post.first_publication_date),
       "'* editado em 'dd MMM yyyy', às ' HH:mm ",
       {
         locale: ptBR,
@@ -81,16 +81,9 @@ export default function Post({
   return (
     <>
       <Head>
-        <title> {post.data.title} | spacetraveling </title>
+        <title> {post.data.title} | NS Post </title>
       </Head>
       <Header />
-      {preview && (
-        <aside>
-          <Link href="/api/exit-preview">
-            <a>Sair do modo Preview</a>
-          </Link>
-        </aside>
-      )}
       <section className={styles.bannerContainer}>
         <img src={post.data.banner.url} alt={post.data.title} />
       </section>
@@ -129,31 +122,6 @@ export default function Post({
             </div>
           ))}
         </section>
-        <section className={styles.pagination}>
-          <div className={styles.before}>
-            {before.uid && (
-              <>
-                <span>{before.title}</span>
-                <Link href={`/post/${before.uid}`}>
-                  <a>Post anterior</a>
-                </Link>
-              </>
-            )}
-          </div>
-          <div className={styles.after}>
-            {after.uid && (
-              <>
-                <span>{after.title}</span>
-                <Link href={`/post/${after.uid}`}>
-                  <a>Próximo post</a>
-                </Link>
-              </>
-            )}
-          </div>
-        </section>
-        <section>
-          <PostComments />
-        </section>
       </main>
     </>
   );
@@ -162,7 +130,7 @@ export default function Post({
 export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient();
   const posts = await prismic.query(
-    Prismic.Predicates.at('document.type', 'posts')
+    Prismic.Predicates.at('document.type', 'post')
   );
   const paths = posts.results.map(post => ({
     params: { slug: post.uid },
@@ -177,16 +145,16 @@ export const getStaticProps: GetStaticProps = async ({
 }) => {
   const { slug } = params;
   const prismic = getPrismicClient();
-  const response = await prismic.getByUID('posts', String(slug), {
+  const response = await prismic.getByUID('post', String(slug), {
     ref: previewData?.ref ?? null,
   });
 
   const afterPosts = await prismic.query(
-    Prismic.Predicates.at('document.type', 'posts'),
+    Prismic.Predicates.at('document.type', 'post'),
     { orderings: '[document.first_publication_date]', after: response.id }
   );
   const beforePosts = await prismic.query(
-    Prismic.Predicates.at('document.type', 'posts'),
+    Prismic.Predicates.at('document.type', 'post'),
     { orderings: '[document.first_publication_date desc]', after: response.id }
   );
   const after = {

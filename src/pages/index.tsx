@@ -11,6 +11,7 @@ import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import Header from '../components/Header';
 
 interface Post {
   uid?: string;
@@ -95,16 +96,10 @@ export default function Home({
       <Head>
         <title>Home | spacetraveling</title>
       </Head>
-      {preview && (
-        <aside>
-          <Link href="/api/exit-preview">
-            <a>Sair do modo Preview</a>
-          </Link>
-        </aside>
-      )}
+
       <main className={`${styles.container} ${commonStyles.container}`}>
         <section className={styles.logoContainer}>
-          <img src="/images/logo.svg" alt="logo" />
+          <Header />
         </section>
         <div className={styles.posts}>
           {posts.map(post => (
@@ -142,8 +137,10 @@ export const getStaticProps: GetStaticProps = async ({
 }) => {
   const prismic = getPrismicClient();
   const postsResponse = await prismic.query(
-    [Prismic.Predicates.at('document.type', 'posts')],
+    [Prismic.Predicates.at('document.type', 'post')],
     { pageSize: 2, ref: previewData?.ref ?? null }
   );
+
+  console.log(JSON.stringify(postsResponse, null, 2));
   return { props: { postsPagination: postsResponse, preview } };
 };
